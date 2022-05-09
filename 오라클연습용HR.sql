@@ -1,0 +1,53 @@
+--주석
+--PDB에서 연습용계정을 사용합니다. (hr)
+ALTER USER HR ACCOUNT UNLOCK;
+ALTER USER HR IDENTIFIED BY HR;
+
+-- CTRL + ENTER로 SQL문 실행
+-- 오라클에서는 대소문자를 구분하지 않는다.
+-- 문자형, 숫자형, 날짜형 크게 3종류
+SELECT * FROM EMPLOYEES;
+
+SELECT EMPLOYEE_ID, FIRST_NAME, LAST_NAME, SALARY
+FROM EMPLOYEES;
+
+SELECT EMPLOYEE_ID, EMAIL, PHONE_NUMBER, HIRE_DATE
+FROM EMPLOYEES;
+
+-- 컬럼의 조회위치에서 * / + - 연산자 사용이 가능함.
+SELECT SALARY, COMMISSION_PCT
+FROM EMPLOYEES;
+
+-- NULL값의 확인, NULL 에는 연산이 진행되어도 NULL
+SELECT SALARY, SALARY * 0.1, COMMISSION_PCT, COMMISSION_PCT * 100
+FROM EMPLOYEES;
+
+-- NULL, 0, 공백 과는 다름
+SELECT DEPARTMENT_ID, COMMISSION_PCT
+FROM EMPLOYEES;
+
+-- ALIAS (열 헤딩 이름지정)
+SELECT EMPLOYEE_ID AS 사원번호,
+       FIRST_NAME AS 이름,
+       LAST_NAME 성,
+       SALARY 급여
+FROM EMPLOYEES;
+
+-- ALIAS (특수문자, 띄어쓰기 등 포함된 경우) "" 이름지정
+SELECT FIRST_NAME "직원 정보",
+       SALARY * 12 "연봉"
+FROM EMPLOYEES;
+
+-- 오라클에서는 홑따옴표가 문자를 표현하고, 문자열안에 혼따옴표를 표현하려면 '' 두번 연속으로 쓰면 된다.
+-- 문자열의 연결은 ||
+SELECT FIRST_NAME || ' ' || LAST_NAME || '''s 급여는 $' || SALARY || '입니다.'
+AS DETAIL
+FROM EMPLOYEES;
+
+-- 중복 행 제거 DISTINCT
+SELECT DISTINCT DEPARTMENT_ID
+FROM EMPLOYEES;
+
+-- ROWNUM, ROWID
+SELECT ROWID, ROWNUM, EMPLOYEE_ID
+FROM EMPLOYEES;

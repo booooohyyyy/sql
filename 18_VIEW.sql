@@ -1,0 +1,98 @@
+/*
+VIEW는 제한적인 자료를 보기 위해 사용하는 가상테이블
+목적 - 가상테이블이기 때문에 필요한 컬럼만 저장해두면 관리가 용이
+뷰를 사용하면 원본 데이터는 안전하게 보호할 수 있다.
+*/
+
+-- 뷰를 만들려면 권한이 필요
+SELECT * FROM USER_ROLE_PRIVS;
+SELECT * FROM USER_SYS_PRIVS;
+
+-- 단순 뷰 (하나의 테이블을 이용해서 만드는 것)
+CREATE /*OR REPLACE*/ VIEW VIEW_EMP
+AS (SELECT EMPLOYEE_ID,
+           CONCAT(FIRST_NAME || ' ', LAST_NAME) AS NAME,
+           JOB_ID,
+           SALARY
+    FROM EMPLOYEES
+    WHERE DEPARTMENT_ID = 60);
+    
+SELECT * FROM VIEW_EMP;
+
+-- 복합 뷰 (여러 테이블을 조인해서 필요한 것만 저장한 형태)
+SELECT * FROM JOBS;
+SELECT * FROM DEPARTMENTS;
+
+CREATE VIEW VIEW_EMP_DEPT_JOBS
+AS (SELECT E.EMPLOYEE_ID,
+           CONCAT(FIRST_NAME || ' ', LAST_NAME) AS NAME,
+           D.DEPARTMENT_NAME,
+           J.JOB_TITLE
+    FROM EMPLOYEES E
+    LEFT OUTER JOIN DEPARTMENTS D
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+    LEFT OUTER JOIN JOBS J
+    ON E.JOB_ID = J.JOB_ID);
+    
+SELECT * FROM VIEW_EMP_DEPT_JOBS;
+
+-- 뷰의 수정 (OR REPLACE)
+-- 동일 이름으로 뷰를 만들면 데이터 변경되면서 덮어씌워짐
+CREATE OR REPLACE VIEW VIEW_EMP_DEPT_JOBS
+AS (SELECT E.EMPLOYEE_ID,
+           E.HIRE_DATE, -- 추가
+           E.SALARY, -- 추가
+           CONCAT(FIRST_NAME || ' ', LAST_NAME) AS NAME,
+           D.DEPARTMENT_NAME,
+           J.JOB_TITLE
+    FROM EMPLOYEES E
+    LEFT OUTER JOIN DEPARTMENTS D
+    ON E.DEPARTMENT_ID = D.DEPARTMENT_ID
+    LEFT OUTER JOIN JOBS J
+    ON E.JOB_ID = J.JOB_ID);
+    
+SELECT * FROM VIEW_EMP_DEPT_JOBS;
+
+SELECT AVG(SALARY), JOB_TITLE
+FROM VIEW_EMP_DEPT_JOBS
+GROUP BY JOB_TITLE
+ORDER BY AVG(SALARY);
+
+-- 뷰 삭제
+DROP VIEW VIEW_EMP;
+DROP VIEW VIEW_EMP_DEPT_JOBS;
+
+--------------------------------------------------------------------------------
+/*
+뷰에서도 DML연산이 일어나는 경우 실제 테이블에 반영된다.
+하지만, VIEW에 CRUD작업이 일어날때 제약사항이 많은 편
+
+원본 테이블이 NOT NULL인 경우, VIEW에서 사용한 이름이 가상열인 경우 등등 CRUD작업이 불가능
+*/
+SELECT * FROM VIEW_EMP_DEPT_JOBS;
+
+-- 원본테이블이 NOT NULL.
+INSERT INTO VIEW_EMP_DEPT_JOBS (EMPLOYEE_ID, HIRE_DATE) VALUES (300, SYSDATE);
+
+-- JOIN으로 이루어진 테이블에도 적용할 수 없음.
+INSERT INTO VIEW_EMP_DEPT_JOBS (EMPLOYEE_ID, JOB_TITLE, DEPARTMENT_NAME)
+VALUES (300, 'TEST', 'TEST');
+
+-- NAME = 가상열이기 때문에 적용할 수 없음.
+UPDATE VIEW_EMP_DEPT_JOBS SET NAME = 'TEST' WHERE EMPLOYEE_ID = 100;
+
+-- WITH CHECK OPTION - 뷰를 만들 때 정의된 값만 들어 갈 수 있음 (조건컬럼제약)
+CREATE OR REPLACE VIEW VIEW_EXP_TEST
+AS (SELECT EMPLOYEE_ID,
+           FIRST_NAME,
+           LAST_NAME,
+           JOB_ID,
+           DEPARTMENT_ID
+    FROM EMPLOYEES
+    WHERE DEPARTMENT_ID IN (60,70,80))
+--WITH CHECK OPTION;
+WITH READ ONLY; -- SELECT만 가능한 뷰
+
+SELECT * FROM VIEW_EXP_TEST;
+-- 60, 70, 80이 아니면 INSERT 불가
+INSERT INTO VIEW_EXP_TEST VALUES (300, 'TEST', 'TEST', 'TEST', 100);

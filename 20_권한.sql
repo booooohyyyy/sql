@@ -1,0 +1,24 @@
+-- XEPDB1 -> SYS계정으로 접속
+
+SELECT * FROM ALL_USERS;
+SELECT * FROM HR.EMPLOYEES;
+
+-- 새로운 계정 생성
+CREATE USER USER01 IDENTIFIED BY USER01; -- ID,PASSWORD: USER01
+CREATE USER COM03 IDENTIFIED BY COM03;
+DROP USER COM03 CASCADE;
+
+-- 권한 부여
+GRANT CREATE SESSION, CREATE TABLE, CREATE VIEW, CREATE SEQUENCE, CREATE PROCEDURE TO USER01;
+
+-- 테이블스페이스 만드는 방법
+-- 보기탭 -> DBA로 접속 -> 테이블스페이스 우클릭 -> 생성 
+
+-- 계정 만드는 방법
+-- PDB로 접속 -> 다른 사용자 우클릭 -> 생성 -> 계정명, 테이블스페이스, 롤 부여
+
+-- 테이블 스테이스 지정
+ALTER USER USER01 DEFAULT TABLESPACE USERS QUOTA UNLIMITED ON USERS;
+
+-- 계정 삭제
+DROP USER USER01 CASCADE; -- USER01로 만들었던 테이블, 시퀀스 등등 연관작업을 삭제.
